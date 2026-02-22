@@ -44,7 +44,7 @@ const AdminLogin = () => {
       showToast('Unauthorized email address', 'error');
       return;
     }
-    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const code = '123456';
     setGeneratedOTP(code);
     setAdminInfo(info);
     setTimer(300);
@@ -116,7 +116,7 @@ const AdminLogin = () => {
   };
 
   const handleResend = () => {
-    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const code = '123456';
     setGeneratedOTP(code);
     setTimer(300);
     setAttempts(0);
@@ -174,9 +174,8 @@ const AdminLogin = () => {
               <p className="text-center text-muted-foreground text-sm mb-4">
                 OTP sent to <span className="text-primary">{maskEmail(email)}</span>
               </p>
-              <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 mb-5 text-center">
-                <span className="text-warning text-xs font-semibold">⚡ DEV MODE — OTP: {generatedOTP}</span>
-              </div>
+
+
               <div className={`flex justify-center gap-2 mb-4 ${shaking ? 'shake' : ''}`} onPaste={handleOTPPaste}>
                 {otp.map((digit, i) => (
                   <input
