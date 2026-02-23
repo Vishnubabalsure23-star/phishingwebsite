@@ -1,22 +1,22 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { ADMIN_EMAILS, maskEmail } from '@/lib/database';
+import { supabase } from '@/integrations/supabase/client';
 import ParticleCanvas from './ParticleCanvas';
-import { ArrowLeft, Shield, Mail, Lock } from 'lucide-react';
+import { ArrowLeft, Shield, Mail, Loader2 } from 'lucide-react';
 
 const AdminLogin = () => {
   const { setScreen, setSession, showToast, setSection } = useApp();
   const [step, setStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [generatedOTP, setGeneratedOTP] = useState('');
   const [adminInfo, setAdminInfo] = useState<{ name: string; level: string } | null>(null);
   const [timer, setTimer] = useState(300);
-  const [attempts, setAttempts] = useState(0);
   const [locked, setLocked] = useState(false);
   const [lockTimer, setLockTimer] = useState(0);
   const [shaking, setShaking] = useState(false);
   const [verified, setVerified] = useState(false);
+  const [loading, setLoading] = useState(false);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ const AdminLogin = () => {
     return () => clearInterval(id);
   }, [locked, lockTimer]);
 
-  const handleSendOTP = () => {
+  const handleSendOTP = async () => {
     const info = ADMIN_EMAILS[email.toLowerCase().trim()];
     if (!info) {
       setShaking(true);
@@ -44,14 +44,28 @@ const AdminLogin = () => {
       showToast('Unauthorized email address', 'error');
       return;
     }
-    const code = '123456';
-    setGeneratedOTP(code);
-    setAdminInfo(info);
-    setTimer(300);
-    setAttempts(0);
-    showToast(`OTP sent to ${maskEmail(email)}`, 'success');
-    setStep(2);
-    setTimeout(() => otpRefs.current[0]?.focus(), 100);
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-admin-otp', {
+        body: { action: 'send', email: email.toLowerCase().trim() },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setAdminInfo(data.adminInfo || info);
+      setTimer(300);
+      showToast(`OTP sent to ${maskEmail(email)}`, 'success');
+      setStep(2);
+      setTimeout(() => otpRefs.current[0]?.focus(), 100);
+    } catch (err: any) {
+      showToast(err.message || 'Failed to send OTP', 'error');
+      setShaking(true);
+      setTimeout(() => setShaking(false), 500);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOTPChange = useCallback((index: number, value: string) => {
@@ -77,7 +91,7 @@ const AdminLogin = () => {
     otpRefs.current[Math.min(text.length, 5)]?.focus();
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (locked) return;
     const code = otp.join('');
     if (timer <= 0) {
@@ -85,44 +99,76 @@ const AdminLogin = () => {
       setOtp(['', '', '', '', '', '']);
       return;
     }
-    if (code !== generatedOTP) {
-      const newAttempts = attempts + 1;
-      setAttempts(newAttempts);
-      setShaking(true);
-      setTimeout(() => setShaking(false), 500);
-      if (newAttempts >= 3) {
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-admin-otp', {
+        body: { action: 'verify', email: email.toLowerCase().trim(), otp: code },
+      });
+
+      if (error) throw error;
+
+      if (data?.locked) {
         setLocked(true);
         setLockTimer(120);
         showToast('Too many attempts. Locked for 2 minutes.', 'error');
-      } else {
-        showToast(`Invalid OTP. ${3 - newAttempts} tries left`, 'error');
+        setOtp(['', '', '', '', '', '']);
+        otpRefs.current[0]?.focus();
+        return;
       }
+
+      if (data?.error) {
+        setShaking(true);
+        setTimeout(() => setShaking(false), 500);
+        showToast(data.error, 'error');
+        setOtp(['', '', '', '', '', '']);
+        otpRefs.current[0]?.focus();
+        return;
+      }
+
+      // Success
+      const verifiedInfo = data.adminInfo || adminInfo!;
+      setVerified(true);
+      showToast(`Welcome, ${verifiedInfo.name}!`, 'success');
+      setTimeout(() => {
+        setSession({
+          loggedIn: true, role: 'admin', userId: null,
+          username: verifiedInfo.name, name: verifiedInfo.name,
+          email: email.toLowerCase().trim(), avatarColor: '#7c3aed',
+          adminLevel: verifiedInfo.level, loginTime: Date.now()
+        });
+        setSection('dashboard');
+        setScreen('admin-dashboard');
+      }, 1500);
+    } catch (err: any) {
+      showToast(err.message || 'Verification failed', 'error');
+      setShaking(true);
+      setTimeout(() => setShaking(false), 500);
       setOtp(['', '', '', '', '', '']);
       otpRefs.current[0]?.focus();
-      return;
+    } finally {
+      setLoading(false);
     }
-    setVerified(true);
-    showToast(`Welcome, ${adminInfo!.name}!`, 'success');
-    setTimeout(() => {
-      setSession({
-        loggedIn: true, role: 'admin', userId: null,
-        username: adminInfo!.name, name: adminInfo!.name,
-        email: email.toLowerCase().trim(), avatarColor: '#7c3aed',
-        adminLevel: adminInfo!.level, loginTime: Date.now()
-      });
-      setSection('dashboard');
-      setScreen('admin-dashboard');
-    }, 1500);
   };
 
-  const handleResend = () => {
-    const code = '123456';
-    setGeneratedOTP(code);
-    setTimer(300);
-    setAttempts(0);
-    setOtp(['', '', '', '', '', '']);
-    showToast('New OTP sent!', 'success');
-    otpRefs.current[0]?.focus();
+  const handleResend = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-admin-otp', {
+        body: { action: 'send', email: email.toLowerCase().trim() },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setTimer(300);
+      setOtp(['', '', '', '', '', '']);
+      showToast('New OTP sent!', 'success');
+      otpRefs.current[0]?.focus();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to resend OTP', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -160,13 +206,14 @@ const AdminLogin = () => {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                 <input
                   type="email" value={email} onChange={e => setEmail(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleSendOTP()}
+                  onKeyDown={e => e.key === 'Enter' && !loading && handleSendOTP()}
                   placeholder="Enter admin email"
                   className="w-full bg-input border border-border rounded-lg py-3 pl-10 pr-4 text-foreground glow-input focus:border-secondary"
+                  disabled={loading}
                 />
               </div>
-              <button onClick={handleSendOTP} className="w-full btn-secondary-glow py-3 rounded-lg font-semibold">
-                Send OTP
+              <button onClick={handleSendOTP} disabled={loading} className="w-full btn-secondary-glow py-3 rounded-lg font-semibold disabled:opacity-40 flex items-center justify-center gap-2">
+                {loading ? <><Loader2 className="animate-spin" size={18} /> Sending...</> : 'Send OTP'}
               </button>
             </div>
           ) : (
@@ -174,7 +221,6 @@ const AdminLogin = () => {
               <p className="text-center text-muted-foreground text-sm mb-4">
                 OTP sent to <span className="text-primary">{maskEmail(email)}</span>
               </p>
-
 
               <div className={`flex justify-center gap-2 mb-4 ${shaking ? 'shake' : ''}`} onPaste={handleOTPPaste}>
                 {otp.map((digit, i) => (
@@ -184,7 +230,7 @@ const AdminLogin = () => {
                     onChange={e => handleOTPChange(i, e.target.value)}
                     onKeyDown={e => handleOTPKeyDown(i, e)}
                     className={`otp-box ${shaking ? 'error' : ''}`}
-                    disabled={locked}
+                    disabled={locked || loading}
                   />
                 ))}
               </div>
@@ -196,13 +242,13 @@ const AdminLogin = () => {
               </div>
               <button
                 onClick={handleVerify}
-                disabled={otp.join('').length !== 6 || locked}
-                className="w-full btn-primary-glow py-3 rounded-lg font-semibold disabled:opacity-40 mb-3"
+                disabled={otp.join('').length !== 6 || locked || loading}
+                className="w-full btn-primary-glow py-3 rounded-lg font-semibold disabled:opacity-40 mb-3 flex items-center justify-center gap-2"
               >
-                {locked ? `Locked (${lockTimer}s)` : 'Verify OTP'}
+                {loading ? <><Loader2 className="animate-spin" size={18} /> Verifying...</> : locked ? `Locked (${lockTimer}s)` : 'Verify OTP'}
               </button>
               <button
-                onClick={handleResend} disabled={timer > 0}
+                onClick={handleResend} disabled={timer > 0 || loading}
                 className="w-full text-sm text-muted-foreground hover:text-primary transition disabled:opacity-30"
               >
                 Resend OTP
