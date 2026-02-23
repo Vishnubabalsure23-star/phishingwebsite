@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "npm:resend@4.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,10 +25,10 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    const resend = new Resend(Deno.env.get("RESEND_API_KEY")!);
     const normalizedEmail = email?.toLowerCase().trim();
 
     if (action === "send") {
-      // Verify admin email
       const adminInfo = ADMIN_EMAILS[normalizedEmail];
       if (!adminInfo) {
         return new Response(
@@ -39,7 +40,7 @@ Deno.serve(async (req) => {
       // Generate 6-digit OTP
       const otpCode = String(Math.floor(100000 + Math.random() * 900000));
 
-      // Invalidate old OTPs for this email
+      // Invalidate old OTPs
       await supabaseAdmin
         .from("admin_otps")
         .update({ used: true })
@@ -53,39 +54,44 @@ Deno.serve(async (req) => {
         expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
       });
 
-      // Send email using Lovable AI gateway as a simple mailer
-      // We'll use the LOVABLE_API_KEY to call a model that will help us format,
-      // but actually we need a real email service. Let's use Supabase's built-in
-      // auth.admin API to send a raw email via the platform.
-      
-      // For now, send via Supabase Auth admin API (magic link workaround)
-      // Actually, let's use a direct SMTP-less approach: we'll call an AI model
-      // to send email. But that won't work either.
-      
-      // The simplest approach: use Supabase's built-in email via auth.admin
-      // We'll send an OTP email using the admin API
-      const { error: emailError } = await supabaseAdmin.auth.admin.generateLink({
-        type: "magiclink",
-        email: normalizedEmail,
-        options: {
-          data: { otp_code: otpCode, admin_name: adminInfo.name },
-        },
+      // Send OTP email via Resend
+      const { error: emailError } = await resend.emails.send({
+        from: "PhishGuard Admin <onboarding@resend.dev>",
+        to: [normalizedEmail],
+        subject: "Your Admin Login OTP - PhishGuard",
+        html: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px; background: #ffffff;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #7c3aed; font-size: 24px; margin: 0;">🛡️ PhishGuard</h1>
+              <p style="color: #6b7280; font-size: 14px; margin-top: 8px;">Admin Access Portal</p>
+            </div>
+            <div style="background: #f3f4f6; border-radius: 12px; padding: 30px; text-align: center;">
+              <p style="color: #374151; font-size: 16px; margin: 0 0 8px;">Hello, <strong>${adminInfo.name}</strong></p>
+              <p style="color: #6b7280; font-size: 14px; margin: 0 0 24px;">Your one-time password for admin login:</p>
+              <div style="background: #7c3aed; color: white; font-size: 32px; letter-spacing: 8px; padding: 16px 24px; border-radius: 8px; display: inline-block; font-weight: bold;">
+                ${otpCode}
+              </div>
+              <p style="color: #9ca3af; font-size: 12px; margin-top: 24px;">This code expires in 5 minutes. Do not share it with anyone.</p>
+            </div>
+            <p style="color: #9ca3af; font-size: 11px; text-align: center; margin-top: 20px;">
+              If you didn't request this code, please ignore this email.
+            </p>
+          </div>
+        `,
       });
 
-      // Even if magic link fails (email not in auth.users), the OTP is stored
-      // and we can verify it. Let's just send a basic notification.
-      // For a production setup, integrate Resend or similar.
-      
-      console.log(`OTP for ${normalizedEmail}: ${otpCode}`);
+      if (emailError) {
+        console.error("Email send error:", emailError);
+        return new Response(
+          JSON.stringify({ error: "Failed to send OTP email. Please check email configuration." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.log(`OTP sent to ${normalizedEmail}`);
 
       return new Response(
-        JSON.stringify({ 
-          success: true, 
-          adminInfo,
-          message: "OTP generated and stored",
-          // In development, include OTP. Remove in production.
-          otp_code: otpCode
-        }),
+        JSON.stringify({ success: true, adminInfo }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -99,7 +105,6 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Find valid OTP
       const { data: otpRecord, error } = await supabaseAdmin
         .from("admin_otps")
         .select("*")
@@ -117,7 +122,6 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Check attempts
       if (otpRecord.attempts >= 3) {
         return new Response(
           JSON.stringify({ error: "Too many attempts. Please request a new OTP.", locked: true }),
@@ -126,7 +130,6 @@ Deno.serve(async (req) => {
       }
 
       if (otpRecord.otp_code !== otp) {
-        // Increment attempts
         await supabaseAdmin
           .from("admin_otps")
           .update({ attempts: otpRecord.attempts + 1 })
@@ -134,8 +137,8 @@ Deno.serve(async (req) => {
 
         const remaining = 2 - otpRecord.attempts;
         return new Response(
-          JSON.stringify({ 
-            error: remaining > 0 
+          JSON.stringify({
+            error: remaining > 0
               ? `Invalid OTP. ${remaining} tries left.`
               : "Too many attempts. Please request a new OTP.",
             locked: remaining <= 0
@@ -144,7 +147,6 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Mark OTP as used
       await supabaseAdmin
         .from("admin_otps")
         .update({ used: true })
