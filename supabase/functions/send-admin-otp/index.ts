@@ -83,14 +83,14 @@ Deno.serve(async (req) => {
       if (error || !otpRecord) {
         return new Response(
           JSON.stringify({ error: "OTP expired or not found. Please request a new one." }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
       if (otpRecord.attempts >= 3) {
         return new Response(
           JSON.stringify({ error: "Too many attempts. Please request a new OTP.", locked: true }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
               : "Too many attempts. Please request a new OTP.",
             locked: remaining <= 0
           }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
