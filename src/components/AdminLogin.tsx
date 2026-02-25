@@ -39,8 +39,43 @@ const AdminLogin = () => {
     return () => clearInterval(id);
   }, [locked, lockTimer]);
 
+  const invokeOtpAction = async (payload: { action: 'send' | 'verify'; email: string; otp?: string }) => {
+    const maxAttempts = 2;
+    let lastError: any = null;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const { data, error } = await supabase.functions.invoke('send-admin-otp', { body: payload });
+
+      if (!error) return { data, error: null };
+
+      lastError = error;
+      const message = String(error.message || '').toLowerCase();
+      const isTransientNetworkError =
+        message.includes('failed to send a request to the edge function') ||
+        message.includes('failed to fetch') ||
+        message.includes('network');
+
+      if (!isTransientNetworkError || attempt === maxAttempts) break;
+      await new Promise(resolve => setTimeout(resolve, 700));
+    }
+
+    return { data: null, error: lastError };
+  };
+
+  const getFriendlyErrorMessage = (err: any, fallback: string) => {
+    const raw = String(err?.message || fallback);
+    const message = raw.toLowerCase();
+
+    if (message.includes('failed to send a request to the edge function') || message.includes('failed to fetch')) {
+      return 'Temporary network issue. Please retry once.';
+    }
+
+    return raw;
+  };
+
   const handleSendOTP = async () => {
-    const info = ADMIN_EMAILS[email.toLowerCase().trim()];
+    const normalizedEmail = email.toLowerCase().trim();
+    const info = ADMIN_EMAILS[normalizedEmail];
     if (!info) {
       setShaking(true);
       setTimeout(() => setShaking(false), 500);
@@ -50,8 +85,9 @@ const AdminLogin = () => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-admin-otp', {
-        body: { action: 'send', email: email.toLowerCase().trim() },
+      const { data, error } = await invokeOtpAction({
+        action: 'send',
+        email: normalizedEmail,
       });
 
       if (error) throw error;
@@ -65,7 +101,7 @@ const AdminLogin = () => {
       setStep(2);
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
     } catch (err: any) {
-      showToast(err.message || 'Failed to generate OTP', 'error');
+      showToast(getFriendlyErrorMessage(err, 'Failed to generate OTP'), 'error');
       setShaking(true);
       setTimeout(() => setShaking(false), 500);
     } finally {
@@ -106,6 +142,8 @@ const AdminLogin = () => {
   const handleVerify = async () => {
     if (locked) return;
     const code = otp.join('');
+    const normalizedEmail = email.toLowerCase().trim();
+
     if (timer <= 0) {
       showToast('OTP expired. Please resend.', 'error');
       setOtp(['', '', '', '', '', '']);
@@ -114,8 +152,10 @@ const AdminLogin = () => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-admin-otp', {
-        body: { action: 'verify', email: email.toLowerCase().trim(), otp: code },
+      const { data, error } = await invokeOtpAction({
+        action: 'verify',
+        email: normalizedEmail,
+        otp: code,
       });
 
       if (error) throw error;
@@ -146,14 +186,14 @@ const AdminLogin = () => {
         setSession({
           loggedIn: true, role: 'admin', userId: null,
           username: verifiedInfo.name, name: verifiedInfo.name,
-          email: email.toLowerCase().trim(), avatarColor: '#7c3aed',
+          email: normalizedEmail, avatarColor: '#7c3aed',
           adminLevel: verifiedInfo.level, loginTime: Date.now()
         });
         setSection('dashboard');
         setScreen('admin-dashboard');
       }, 1500);
     } catch (err: any) {
-      showToast(err.message || 'Verification failed', 'error');
+      showToast(getFriendlyErrorMessage(err, 'Verification failed'), 'error');
       setShaking(true);
       setTimeout(() => setShaking(false), 500);
       setOtp(['', '', '', '', '', '']);
@@ -164,10 +204,12 @@ const AdminLogin = () => {
   };
 
   const handleResend = async () => {
+    const normalizedEmail = email.toLowerCase().trim();
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-admin-otp', {
-        body: { action: 'send', email: email.toLowerCase().trim() },
+      const { data, error } = await invokeOtpAction({
+        action: 'send',
+        email: normalizedEmail,
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -179,7 +221,7 @@ const AdminLogin = () => {
       showToast('New OTP generated!', 'success');
       otpRefs.current[0]?.focus();
     } catch (err: any) {
-      showToast(err.message || 'Failed to resend OTP', 'error');
+      showToast(getFriendlyErrorMessage(err, 'Failed to resend OTP'), 'error');
     } finally {
       setLoading(false);
     }
