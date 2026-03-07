@@ -1,1 +1,7 @@
 project_id = "xlrmbthrgtotfrjlgrrc"
+
+[functions.send-admin-otp]
+verify_jwt = false
+
+[functions.chat-support]
+verify_jwt = false

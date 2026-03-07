@@ -13,12 +13,15 @@ import AdminAlerts from '@/components/AdminAlerts';
 import AdminUsers from '@/components/AdminUsers';
 import AdminScanHistory from '@/components/AdminScanHistory';
 import AdminSettings from '@/components/AdminSettings';
+import ChatSupport from '@/components/ChatSupport';
+import ChatBubbleWidget from '@/components/ChatBubbleWidget';
 import { Shield } from 'lucide-react';
 
 const USER_MENU = [
   { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
   { id: 'scanner', label: 'URL Scanner', icon: '🔍' },
   { id: 'history', label: 'My Scan History', icon: '📋' },
+  { id: 'support', label: 'AI Support', icon: '🤖' },
   { id: 'profile', label: 'Profile', icon: '👤' },
 ];
 
@@ -53,12 +56,13 @@ const Index = () => {
   if (screen === 'user-register') return <UserRegister />;
 
   if (screen === 'user-dashboard') {
-    const titles: Record<string, string> = { dashboard: 'Dashboard', scanner: 'URL Scanner', history: 'Scan History', profile: 'Profile' };
+    const titles: Record<string, string> = { dashboard: 'Dashboard', scanner: 'URL Scanner', history: 'Scan History', support: 'AI Support', profile: 'Profile' };
     return (
       <DashboardLayout menuItems={USER_MENU} title={titles[section] || 'Dashboard'} role="user">
         {section === 'dashboard' && <UserDashboardHome />}
         {section === 'scanner' && <URLScanner />}
         {section === 'history' && <ScanHistory />}
+        {section === 'support' && <ChatSupport />}
         {section === 'profile' && <UserProfile />}
       </DashboardLayout>
     );
@@ -77,7 +81,13 @@ const Index = () => {
     );
   }
 
-  return null;
+  return (
+    <>
+      {/* Floating chat widget on role-selection page */}
+      {screen === 'role-selection' && <ChatBubbleWidget />}
+      {null}
+    </>
+  );
 };
 
 export default Index;
