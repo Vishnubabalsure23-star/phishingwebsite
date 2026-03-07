@@ -56,12 +56,13 @@ const Index = () => {
   if (screen === 'user-register') return <UserRegister />;
 
   if (screen === 'user-dashboard') {
-    const titles: Record<string, string> = { dashboard: 'Dashboard', scanner: 'URL Scanner', history: 'Scan History', profile: 'Profile' };
+    const titles: Record<string, string> = { dashboard: 'Dashboard', scanner: 'URL Scanner', history: 'Scan History', support: 'AI Support', profile: 'Profile' };
     return (
       <DashboardLayout menuItems={USER_MENU} title={titles[section] || 'Dashboard'} role="user">
         {section === 'dashboard' && <UserDashboardHome />}
         {section === 'scanner' && <URLScanner />}
         {section === 'history' && <ScanHistory />}
+        {section === 'support' && <ChatSupport />}
         {section === 'profile' && <UserProfile />}
       </DashboardLayout>
     );
