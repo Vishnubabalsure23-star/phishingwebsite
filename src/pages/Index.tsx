@@ -21,6 +21,7 @@ const USER_MENU = [
   { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
   { id: 'scanner', label: 'URL Scanner', icon: '🔍' },
   { id: 'history', label: 'My Scan History', icon: '📋' },
+  { id: 'support', label: 'AI Support', icon: '🤖' },
   { id: 'profile', label: 'Profile', icon: '👤' },
 ];
 
