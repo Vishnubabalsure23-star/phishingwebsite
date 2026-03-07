@@ -13,6 +13,8 @@ import AdminAlerts from '@/components/AdminAlerts';
 import AdminUsers from '@/components/AdminUsers';
 import AdminScanHistory from '@/components/AdminScanHistory';
 import AdminSettings from '@/components/AdminSettings';
+import ChatSupport from '@/components/ChatSupport';
+import ChatBubbleWidget from '@/components/ChatBubbleWidget';
 import { Shield } from 'lucide-react';
 
 const USER_MENU = [
