@@ -136,11 +136,18 @@ const ChatBubbleWidget: React.FC<ChatBubbleWidgetProps> = ({ embedded = false })
             <p className="text-[10px] opacity-80">AI-powered • Always online</p>
           </div>
         </div>
-        {!embedded && (
-          <button onClick={() => setOpen(false)} className="hover:bg-white/20 rounded-full p-1 transition-colors">
-            <X className="w-4 h-4" />
-          </button>
-        )}
+        <div className="flex items-center gap-1">
+          {messages.length > 1 && (
+            <button onClick={clearHistory} className="hover:bg-white/20 rounded-full p-1 transition-colors" title="Clear chat">
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+          {!embedded && (
+            <button onClick={() => setOpen(false)} className="hover:bg-white/20 rounded-full p-1 transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Messages */}
