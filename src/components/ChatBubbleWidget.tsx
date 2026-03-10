@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { MessageCircle, X, Send, Bot, User, Loader2 } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User, Loader2, Trash2 } from 'lucide-react';
 import { streamChat, type Msg } from '@/lib/chatStream';
 import ReactMarkdown from 'react-markdown';
+import { useApp } from '@/contexts/AppContext';
 
 const QUICK_QUESTIONS = [
   "How does URL scanning work?",
@@ -9,23 +10,65 @@ const QUICK_QUESTIONS = [
   "How to spot a phishing link?",
 ];
 
+const DEFAULT_MSG: Msg = { role: 'assistant', content: "👋 Hi! I'm PhishGuard AI Support. How can I help you today?" };
+
 interface ChatBubbleWidgetProps {
   embedded?: boolean;
 }
 
 const ChatBubbleWidget: React.FC<ChatBubbleWidgetProps> = ({ embedded = false }) => {
+  const { db, session } = useApp();
   const [open, setOpen] = useState(embedded);
-  const [messages, setMessages] = useState<Msg[]>([
-    { role: 'assistant', content: "👋 Hi! I'm PhishGuard AI Support. How can I help you today?" }
-  ]);
+  const [messages, setMessages] = useState<Msg[]>([DEFAULT_MSG]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const initialLoadDone = useRef(false);
+
+  // Derive a session key for chat persistence
+  const sessionKey = session?.userId ? `${session.role}_${session.userId}` : 'guest';
+
+  // Load chat history from local DB on mount
+  useEffect(() => {
+    if (!db || initialLoadDone.current) return;
+    initialLoadDone.current = true;
+    try {
+      const rows = db.query(
+        'SELECT role, content FROM chat_messages WHERE session_key = ? ORDER BY id ASC',
+        [sessionKey]
+      );
+      if (rows.length > 0) {
+        setMessages(rows.map((r: any) => ({ role: r.role, content: r.content })));
+      }
+    } catch {
+      // table may not exist yet on first run
+    }
+  }, [db, sessionKey]);
+
+  // Save messages to DB whenever they change (after initial load)
+  useEffect(() => {
+    if (!db || !initialLoadDone.current) return;
+    try {
+      db.exec(`DELETE FROM chat_messages WHERE session_key = '${sessionKey.replace(/'/g, "''")}'`);
+      for (const m of messages) {
+        db.run(
+          'INSERT INTO chat_messages (session_key, role, content) VALUES (?, ?, ?)',
+          [sessionKey, m.role, m.content]
+        );
+      }
+    } catch {
+      // ignore save errors
+    }
+  }, [messages, db, sessionKey]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  const clearHistory = useCallback(() => {
+    setMessages([DEFAULT_MSG]);
+  }, []);
 
   const send = useCallback(async (text: string) => {
     if (!text.trim() || loading) return;
