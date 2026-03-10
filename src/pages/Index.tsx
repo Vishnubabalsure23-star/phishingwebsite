@@ -36,6 +36,7 @@ const Index = () => {
     { id: 'users', label: 'User Management', icon: '👥' },
     { id: 'analytics', label: 'All Scan History', icon: '📊' },
     { id: 'settings', label: 'System Settings', icon: '⚙️' },
+    { id: 'support', label: 'AI Support', icon: '🤖' },
   ];
 
   if (screen === 'loading') {
