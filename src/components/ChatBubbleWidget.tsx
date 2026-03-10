@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { MessageCircle, X, Send, Bot, User, Loader2 } from 'lucide-react';
 import { streamChat, type Msg } from '@/lib/chatStream';
+import ReactMarkdown from 'react-markdown';
 
 const QUICK_QUESTIONS = [
   "How does URL scanning work?",
@@ -108,12 +109,16 @@ const ChatBubbleWidget: React.FC<ChatBubbleWidgetProps> = ({ embedded = false })
                 <Bot className="w-4 h-4 text-primary" />
               </div>
             )}
-            <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap ${
+            <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
               m.role === 'user'
-                ? 'bg-primary text-primary-foreground rounded-br-md'
-                : 'bg-muted text-foreground rounded-bl-md'
+                ? 'bg-primary text-primary-foreground rounded-br-md whitespace-pre-wrap'
+                : 'bg-muted text-foreground rounded-bl-md prose prose-sm prose-invert max-w-none [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5 [&_pre]:bg-background/50 [&_pre]:rounded-lg [&_pre]:p-2 [&_code]:text-xs [&_code]:bg-background/50 [&_code]:px-1 [&_code]:rounded [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm [&_strong]:text-foreground'
             }`}>
-              {m.content}
+              {m.role === 'assistant' ? (
+                <ReactMarkdown>{m.content}</ReactMarkdown>
+              ) : (
+                m.content
+              )}
             </div>
             {m.role === 'user' && (
               <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center shrink-0 mt-1">
