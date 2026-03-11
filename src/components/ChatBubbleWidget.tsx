@@ -169,9 +169,20 @@ const ChatBubbleWidget: React.FC<ChatBubbleWidgetProps> = ({ embedded = false })
             <Search className="w-4 h-4" />
           </button>
           {messages.length > 1 && (
-            <button onClick={clearHistory} className="hover:bg-white/20 rounded-full p-1 transition-colors" title="Clear chat">
-              <Trash2 className="w-4 h-4" />
-            </button>
+            <>
+              <div className="relative group">
+                <button className="hover:bg-white/20 rounded-full p-1 transition-colors" title="Export chat">
+                  <Download className="w-4 h-4" />
+                </button>
+                <div className="absolute right-0 top-full mt-1 bg-background border border-border rounded-lg shadow-lg py-1 hidden group-hover:block z-10 min-w-[120px]">
+                  <button onClick={exportAsText} className="w-full text-left px-3 py-1.5 text-xs text-foreground hover:bg-muted transition-colors">Export as Text</button>
+                  <button onClick={exportAsPdf} className="w-full text-left px-3 py-1.5 text-xs text-foreground hover:bg-muted transition-colors">Export as PDF</button>
+                </div>
+              </div>
+              <button onClick={clearHistory} className="hover:bg-white/20 rounded-full p-1 transition-colors" title="Clear chat">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </>
           )}
           {!embedded && (
             <button onClick={() => setOpen(false)} className="hover:bg-white/20 rounded-full p-1 transition-colors">

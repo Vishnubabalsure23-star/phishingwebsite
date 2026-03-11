@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import { Database } from '@/lib/database';
 
-export type Screen = 'loading' | 'role-selection' | 'admin-login' | 'user-login' | 'user-register' | 'user-dashboard' | 'admin-dashboard';
+export type Screen = 'loading' | 'role-selection' | 'admin-login' | 'user-login' | 'user-register' | 'user-dashboard' | 'admin-dashboard' | 'user-reset-password';
 
 export interface Session {
   loggedIn: boolean;

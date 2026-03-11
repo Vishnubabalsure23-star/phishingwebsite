@@ -17,8 +17,6 @@ const UserLogin = () => {
   const [forgotStep, setForgotStep] = useState(1);
   const [forgotId, setForgotId] = useState('');
   const [forgotUser, setForgotUser] = useState<any>(null);
-  const [newPw, setNewPw] = useState('');
-  const [confirmPw, setConfirmPw] = useState('');
 
   useEffect(() => {
     if (lockTimer <= 0) return;
