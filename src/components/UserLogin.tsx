@@ -153,37 +153,36 @@ const UserLogin = () => {
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground mb-1">Enter your username or email to receive a password reset link.</p>
                 <input value={forgotId} onChange={e => setForgotId(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleForgotFind()}
                   placeholder="Username or Email"
                   className="w-full bg-input border border-border rounded-lg py-2.5 px-4 text-foreground glow-input" />
                 <button onClick={handleForgotFind} className="w-full btn-primary-glow py-2.5 rounded-lg">Send Reset Link</button>
               </div>
             )}
             {forgotStep === 2 && forgotUser && (
-              <div className="space-y-3 text-center">
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto">
-                  <Mail className="w-6 h-6 text-primary" />
+              <div className="space-y-4 text-center">
+                <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mx-auto">
+                  <Mail className="w-7 h-7 text-primary" />
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  A password reset link has been sent to
+                <div>
+                  <p className="text-sm text-foreground font-medium mb-1">Reset Link Sent!</p>
+                  <p className="text-sm text-muted-foreground">
+                    We've sent a password reset link to
+                  </p>
+                  <p className="text-primary font-medium mt-1">{forgotUser.email.replace(/(.{2})(.*)(@.*)/, '$1****$3')}</p>
+                </div>
+                <p className="text-xs text-muted-foreground">Check your inbox and spam folder. The link will expire in 15 minutes.</p>
+                <button onClick={() => { setShowForgot(false); setForgotStep(1); setForgotId(''); setForgotUser(null); }} 
+                  className="w-full btn-primary-glow py-2.5 rounded-lg">Back to Login</button>
+                <p className="text-xs text-muted-foreground">
+                  Already have the link?{' '}
+                  <button onClick={() => { setShowForgot(false); setScreen('user-reset-password'); }} className="text-primary hover:underline">
+                    Reset Password →
+                  </button>
                 </p>
-                <p className="text-primary font-medium">{forgotUser.email.replace(/(.{2})(.*)(@.*)/, '$1****$3')}</p>
-                <p className="text-xs text-muted-foreground">Check your inbox and click the link to continue.</p>
-                <button onClick={() => setForgotStep(3)} className="w-full btn-primary-glow py-2.5 rounded-lg">Continue to Reset Password</button>
               </div>
             )}
-            {forgotStep === 3 && forgotUser && (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">Create a new password for <span className="text-primary">{forgotUser.username}</span></p>
-                <input type="password" value={newPw} onChange={e => setNewPw(e.target.value)}
-                  placeholder="New Password (8+ chars)"
-                  className="w-full bg-input border border-border rounded-lg py-2.5 px-4 text-foreground glow-input" />
-                <input type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)}
-                  placeholder="Confirm Password"
-                  className="w-full bg-input border border-border rounded-lg py-2.5 px-4 text-foreground glow-input" />
-                <button onClick={handleResetPassword} className="w-full btn-primary-glow py-2.5 rounded-lg">Update Password</button>
-              </div>
-            )}
-            <button onClick={() => setShowForgot(false)} className="w-full text-sm text-muted-foreground mt-3 hover:text-foreground">Cancel</button>
+            <button onClick={() => { setShowForgot(false); setForgotStep(1); }} className="w-full text-sm text-muted-foreground mt-3 hover:text-foreground">Cancel</button>
           </div>
         </div>
       )}
