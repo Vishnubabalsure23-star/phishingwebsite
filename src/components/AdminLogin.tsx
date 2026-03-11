@@ -206,9 +206,15 @@ const AdminLogin = () => {
         setScreen('admin-dashboard');
       }, 1500);
     } catch (err: any) {
+      const newFails = otpFailCount + 1;
+      setOtpFailCount(newFails);
       showToast(getFriendlyErrorMessage(err, 'Verification failed'), 'error');
       setShaking(true);
       setTimeout(() => setShaking(false), 500);
+      if (newFails >= 5) {
+        setShowPasswordFallback(true);
+        showToast('Too many failed attempts. Use password to login.', 'warning');
+      }
       setOtp(['', '', '', '', '', '']);
       otpRefs.current[0]?.focus();
     } finally {
