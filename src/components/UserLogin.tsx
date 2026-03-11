@@ -72,14 +72,14 @@ const UserLogin = () => {
     const user = db.queryOne('SELECT * FROM users WHERE username=? OR email=?', [forgotId, forgotId]);
     if (!user) { showToast('Account not found', 'error'); return; }
     setForgotUser(user);
-    setForgotStep(2);
+    setForgotStep(2); // show "email sent" confirmation
   };
 
   const handleResetPassword = () => {
     if (newPw.length < 8) { showToast('Password must be 8+ chars', 'warning'); return; }
     if (newPw !== confirmPw) { showToast('Passwords do not match', 'error'); return; }
     db!.run('UPDATE users SET password=? WHERE id=?', [newPw, forgotUser.id]);
-    showToast('Password updated!', 'success');
+    showToast('Password updated! Please login with your new password.', 'success');
     setShowForgot(false); setForgotStep(1); setForgotUser(null);
     setNewPw(''); setConfirmPw(''); setForgotId('');
   };
