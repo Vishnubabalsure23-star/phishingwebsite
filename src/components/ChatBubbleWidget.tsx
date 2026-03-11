@@ -22,8 +22,11 @@ const ChatBubbleWidget: React.FC<ChatBubbleWidgetProps> = ({ embedded = false })
   const [messages, setMessages] = useState<Msg[]>([DEFAULT_MSG]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const initialLoadDone = useRef(false);
 
   // Derive a session key for chat persistence
