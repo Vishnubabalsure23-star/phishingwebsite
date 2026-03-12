@@ -52,14 +52,14 @@ const EmailResetTemplate = ({ username, maskedEmail, onClose }: EmailResetTempla
             We received a request to reset the password for your PhishGuard account. Click the button below to create a new password.
           </p>
 
-          {/* CTA Button */}
-          <button
-            onClick={onResetClick}
-            className="inline-block px-8 py-3 rounded-lg text-sm font-bold text-white transition-transform hover:scale-105"
+          {/* CTA Button - display only, not clickable (user must use actual email link) */}
+          <div
+            className="inline-block px-8 py-3 rounded-lg text-sm font-bold text-white cursor-default select-none opacity-90"
             style={{ background: 'linear-gradient(135deg, hsl(183, 100%, 50%), hsl(183, 100%, 35%))' }}
           >
             🔐 Reset My Password
-          </button>
+          </div>
+          <p className="text-xs text-gray-400 mt-2 italic">* Click this link in your actual email to reset</p>
 
           <p className="text-xs text-gray-400 mt-4">This link expires in <strong>15 minutes</strong></p>
 
