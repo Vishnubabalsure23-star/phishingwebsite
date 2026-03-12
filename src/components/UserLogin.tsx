@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import ParticleCanvas from './ParticleCanvas';
-import { ArrowLeft, Shield, Eye, EyeOff, User, Lock, Mail } from 'lucide-react';
+import { ArrowLeft, Shield, Eye, EyeOff, User, Lock } from 'lucide-react';
+import EmailResetTemplate from './EmailResetTemplate';
 
 const UserLogin = () => {
   const { db, setScreen, setSession, showToast, setSection } = useApp();
@@ -158,27 +159,12 @@ const UserLogin = () => {
               </div>
             )}
             {forgotStep === 2 && forgotUser && (
-              <div className="space-y-4 text-center">
-                <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mx-auto">
-                  <Mail className="w-7 h-7 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm text-foreground font-medium mb-1">Reset Link Sent!</p>
-                  <p className="text-sm text-muted-foreground">
-                    We've sent a password reset link to
-                  </p>
-                  <p className="text-primary font-medium mt-1">{forgotUser.email.replace(/(.{2})(.*)(@.*)/, '$1****$3')}</p>
-                </div>
-                <p className="text-xs text-muted-foreground">Check your inbox and spam folder. The link will expire in 15 minutes.</p>
-                <button onClick={() => { setShowForgot(false); setForgotStep(1); setForgotId(''); setForgotUser(null); }} 
-                  className="w-full btn-primary-glow py-2.5 rounded-lg">Back to Login</button>
-                <p className="text-xs text-muted-foreground">
-                  Already have the link?{' '}
-                  <button onClick={() => { setShowForgot(false); setScreen('user-reset-password'); }} className="text-primary hover:underline">
-                    Reset Password →
-                  </button>
-                </p>
-              </div>
+              <EmailResetTemplate
+                username={forgotUser.username}
+                maskedEmail={forgotUser.email.replace(/(.{2})(.*)(@.*)/, '$1****$3')}
+                onClose={() => { setShowForgot(false); setForgotStep(1); setForgotId(''); setForgotUser(null); }}
+                onResetClick={() => { setShowForgot(false); setScreen('user-reset-password'); }}
+              />
             )}
             <button onClick={() => { setShowForgot(false); setForgotStep(1); }} className="w-full text-sm text-muted-foreground mt-3 hover:text-foreground">Cancel</button>
           </div>
