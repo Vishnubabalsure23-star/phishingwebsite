@@ -119,6 +119,9 @@ const UserLogin = () => {
                   className="w-4 h-4 rounded border-border bg-input accent-primary" />
                 Remember Me
               </label>
+              <button type="button" onClick={() => setShowForgot(true)} className="text-primary hover:underline font-medium">
+                Forgot Password?
+              </button>
             </div>
 
             <button onClick={handleLogin} disabled={loading || lockTimer > 0}
