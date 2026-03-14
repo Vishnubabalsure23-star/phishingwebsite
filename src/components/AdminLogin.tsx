@@ -79,8 +79,8 @@ const AdminLogin = () => {
     return raw;
   };
 
-  const handleSendOTP = async () => {
-    const normalizedEmail = email.toLowerCase().trim();
+  const handleSendOTP = async (targetEmail?: string) => {
+    const normalizedEmail = (targetEmail || email).toLowerCase().trim();
     const info = ADMIN_EMAILS[normalizedEmail];
     if (!info) {
       setShaking(true);
@@ -89,6 +89,7 @@ const AdminLogin = () => {
       return;
     }
 
+    setEmail(normalizedEmail);
     setLoading(true);
     try {
       const { data, error } = await invokeOtpAction({
@@ -103,7 +104,7 @@ const AdminLogin = () => {
       setEmailSent(!!data.emailSent);
       setGeneratedOtp(data.otpCode || '');
       setTimer(300);
-      showToast(data.emailSent ? `OTP sent to ${maskEmail(email)}` : 'OTP generated successfully!', 'success');
+      showToast(data.emailSent ? `OTP sent to ${maskEmail(normalizedEmail)}` : 'OTP generated successfully!', 'success');
       setStep(2);
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
     } catch (err: any) {
