@@ -36,8 +36,14 @@ interface AppContextType {
   logout: () => void;
 }
 
-const AppContext = createContext<AppContextType>(null!);
-export const useApp = () => useContext(AppContext);
+const AppContext = createContext<AppContextType | null>(null);
+export const useApp = () => {
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error('useApp must be used within an AppProvider');
+  }
+  return context;
+};
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [db, setDb] = useState<Database | null>(null);
