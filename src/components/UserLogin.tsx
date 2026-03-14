@@ -144,30 +144,31 @@ const UserLogin = () => {
         </div>
       </div>
 
-      {/* Forgot Password Modal */}
+      {/* Forgot Password - Contact Admin Modal */}
       {showForgot && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm" onClick={() => setShowForgot(false)}>
           <div className="glass-strong p-6 rounded-2xl max-w-sm w-full mx-4 glow-cyan" onClick={e => e.stopPropagation()}>
             <h3 className="font-orbitron text-lg text-primary mb-4">Reset Password</h3>
-            {forgotStep === 1 && (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground mb-1">Enter your username or email to receive a password reset link.</p>
-                <input value={forgotId} onChange={e => setForgotId(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleForgotFind()}
-                  placeholder="Username or Email"
-                  className="w-full bg-input border border-border rounded-lg py-2.5 px-4 text-foreground glow-input" />
-                <button onClick={handleForgotFind} className="w-full btn-primary-glow py-2.5 rounded-lg">Send Reset Link</button>
+            <p className="text-sm text-muted-foreground mb-4">
+              To reset your password, please contact an administrator:
+            </p>
+            <div className="space-y-3 mb-4">
+              <div className="flex items-center gap-3 bg-muted/50 border border-border rounded-lg p-3">
+                <Shield className="text-primary shrink-0" size={20} />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Vishnu Babalsure</p>
+                  <a href="mailto:vishnubabalsure@gmail.com" className="text-xs text-primary hover:underline">vishnubabalsure@gmail.com</a>
+                </div>
               </div>
-            )}
-            {forgotStep === 2 && forgotUser && (
-              <EmailResetTemplate
-                username={forgotUser.username}
-                maskedEmail={forgotUser.email.replace(/(.{2})(.*)(@.*)/, '$1****$3')}
-                onClose={() => { setShowForgot(false); setForgotStep(1); setForgotId(''); setForgotUser(null); }}
-                onOpenInbox={() => { setShowForgot(false); setScreen('simulated-inbox'); }}
-              />
-            )}
-            <button onClick={() => { setShowForgot(false); setForgotStep(1); }} className="w-full text-sm text-muted-foreground mt-3 hover:text-foreground">Cancel</button>
+              <div className="flex items-center gap-3 bg-muted/50 border border-border rounded-lg p-3">
+                <Shield className="text-primary shrink-0" size={20} />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Nilesh Chatap</p>
+                  <a href="mailto:nileshchatap25@gmail.com" className="text-xs text-primary hover:underline">nileshchatap25@gmail.com</a>
+                </div>
+              </div>
+            </div>
+            <button onClick={() => setShowForgot(false)} className="w-full btn-primary-glow py-2.5 rounded-lg font-semibold">Close</button>
           </div>
         </div>
       )}
