@@ -1,73 +1,71 @@
-# Welcome to your Lovable project
 
-## Project info
+# 🛡️ PhishGuard AI – Phishing Website Detection
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+PhishGuard AI is an intelligent tool designed to detect and analyze suspicious or phishing websites.  
+It helps users stay safe online by scanning URLs and identifying potential threats before they cause harm.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 🚀 Features
 
-**Use Lovable**
+🔎 **URL Security Scan**  
+Scan any website URL to check if it is safe or potentially malicious.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+⚡ **Fast Detection**  
+Instantly analyze websites using AI-powered detection techniques.
 
-Changes made via Lovable will be committed automatically to this repo.
+🛡️ **Phishing Protection**  
+Identify phishing websites that try to steal sensitive information like passwords, banking details, or personal data.
 
-**Use your preferred IDE**
+📊 **Clear Results**  
+Get easy-to-understand results that tell users whether a website is safe or dangerous.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+🌐 **Simple Web Interface**  
+User-friendly interface where anyone can scan a link quickly.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+---
 
-Follow these steps:
+## 🧠 How It Works
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+1. User enters a website URL.
+2. The system analyzes multiple phishing indicators.
+3. AI model processes the data.
+4. The result shows whether the site is **Safe ✅** or **Suspicious ⚠️**.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+---
 
-# Step 3: Install the necessary dependencies.
-npm i
+## 💡 Why This Project?
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+Phishing attacks are increasing every day. Many users unknowingly enter their sensitive data on fake websites.
 
-**Edit a file directly in GitHub**
+PhishGuard AI helps solve this problem by providing a quick and reliable way to detect phishing websites.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+---
 
-**Use GitHub Codespaces**
+## 🛠️ Technologies Used
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Python.
+- Machine Learning.
+- HTML / CSS / JavaScript.
+- AI-based URL analysis.
+- Data anlysis iusing AI.
 
-## What technologies are used for this project?
+---
 
-This project is built with:
+## 📌 Use Case
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+✔ Checking suspicious links before opening them  
+✔ Protecting users from phishing scams  
+✔ Improving cybersecurity awareness  
 
-## How can I deploy this project?
+---
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## 🔗 Live Project
 
-## Can I connect a custom domain to my Lovable project?
+Try the live scanner here:  
+👉 https://phishingwebsite.lovable.app/
 
-Yes, you can!
+---
+## ⭐ Support
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+If you like this project, consider giving it a **star ⭐ on GitHub** to support the development.
